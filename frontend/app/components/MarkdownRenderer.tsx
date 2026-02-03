@@ -19,6 +19,14 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
           marginBottom: '0.75rem',
           fontSize: '1.1rem',
           lineHeight: 1.7,
+          '@media (max-width: 600px)': {
+            fontSize: '0.9rem',
+            lineHeight: 1.5,
+          },
+          '@media (min-width: 600px) and (max-width: 960px)': {
+            fontSize: '1rem',
+            lineHeight: 1.6,
+          },
         },
         '& h1, & h2, & h3, & h4, & h5, & h6': {
           marginTop: '1rem',
@@ -37,12 +45,28 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
           width: '100%',
           marginBottom: '1rem',
           marginTop: '1rem',
+          fontSize: '1rem',
+          display: 'block',
+          overflowX: 'auto',
+          whiteSpace: 'nowrap',
+          '@media (max-width: 600px)': {
+            fontSize: '0.75rem',
+          },
+          '@media (min-width: 600px) and (max-width: 960px)': {
+            fontSize: '0.875rem',
+          },
         },
         '& th, & td': {
           border: '1px solid',
           borderColor: 'divider',
           padding: '0.5rem',
           textAlign: 'left',
+          '@media (max-width: 600px)': {
+            padding: '0.25rem',
+          },
+          '@media (min-width: 600px) and (max-width: 960px)': {
+            padding: '0.375rem',
+          },
         },
         '& th': {
           backgroundColor: 'action.hover',

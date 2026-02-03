@@ -40,31 +40,53 @@ export default function ChatInterface() {
     <Container 
       maxWidth={false} 
       sx={{ 
-        height: '100vh',
-        maxHeight: '100vh',
+        minHeight: { xs: '100dvh', sm: '100vh' }, // Use minHeight on mobile to allow natural scroll
+        height: { xs: 'auto', sm: '100vh' }, // Auto height on mobile, fixed on desktop
+        maxHeight: { xs: 'none', sm: '100vh' },
         display: 'flex', 
         flexDirection: 'column', 
-        py: 2, 
-        px: 4,
-        maxWidth: '90%',
-        overflow: 'hidden', // Prevent container from causing page scroll
+        py: { xs: 1, sm: 2 }, 
+        px: { xs: 1, sm: 2, md: 4 },
+        maxWidth: { xs: '100%', sm: '95%', md: '90%' },
+        overflow: { xs: 'visible', sm: 'hidden' }, // Allow scroll on mobile
+        position: 'relative',
       }}
     >
-      <Box sx={{ mb: 2, textAlign: 'center', position: 'relative' }}>
+      <Box sx={{ mb: { xs: 1, sm: 2 }, textAlign: 'center', position: 'relative' }}>
         <IconButton
           onClick={toggleColorMode}
           sx={{ position: 'absolute', right: 0, top: 0 }}
           color="inherit"
+          size="small"
         >
           {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
         </IconButton>
-        <Typography variant="h4" component="h1" gutterBottom fontWeight="bold">
+        <Typography 
+          variant="h4" 
+          component="h1" 
+          gutterBottom 
+          fontWeight="bold"
+          sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' } }}
+        >
           Quantum Computing Thesis Assistant
         </Typography>
-        <Typography variant="subtitle1" color="text.secondary" sx={{ mb: 1 }}>
+        <Typography 
+          variant="subtitle1" 
+          color="text.secondary" 
+          sx={{ mb: 1, fontSize: { xs: '0.875rem', sm: '1rem' }, display: { xs: 'none', sm: 'block' } }}
+        >
           AI-powered assistant for exploring quantum computing research and thesis documents
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: '1000px', mx: 'auto' }}>
+        <Typography 
+          variant="body2" 
+          color="text.secondary" 
+          sx={{ 
+            maxWidth: '1000px', 
+            mx: 'auto',
+            fontSize: { xs: '0.75rem', sm: '0.875rem' },
+            display: { xs: 'none', md: 'block' }
+          }}
+        >
           This chatbot uses Retrieval-Augmented Generation (RAG) to answer questions based on 
           research papers and thesis documents. It can discuss quantum computing concepts, 
           algorithms, and research findings from the ingested literature.
@@ -75,14 +97,15 @@ export default function ChatInterface() {
         ref={(el) => { messagesContainerRef.current = el as HTMLDivElement | null; }}
         elevation={3} 
         sx={{ 
-          flex: 1, 
-          mb: 2, 
-          p: 3, 
-          overflowY: 'auto',
+          flex: { xs: '0 1 auto', sm: 1 }, // Don't grow on mobile
+          mb: { xs: 1, sm: 2 }, 
+          p: { xs: 1.5, sm: 2, md: 3 }, 
+          overflowY: { xs: 'visible', sm: 'auto' }, // Visible on mobile, auto scroll on desktop
           overflowX: 'hidden',
           borderRadius: 2,
-          minHeight: 0, // Important for flex scrolling
-          maxHeight: '100%', // Prevent expansion
+          minHeight: { xs: '300px', sm: '400px', md: '500px' }, // Minimum height for empty chat
+          maxHeight: { xs: 'none', sm: '100%' }, // No max height on mobile
+          WebkitOverflowScrolling: 'touch', // Smooth scrolling on iOS
         }}
       >
         {messages.map((msg, index) => (
@@ -91,39 +114,40 @@ export default function ChatInterface() {
             sx={{
               display: 'flex',
               justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-              mb: 2,
-              gap: 1
+              mb: { xs: 1.5, sm: 2 },
+              gap: { xs: 0.5, sm: 1 }
             }}
           >
             {msg.role === 'assistant' && (
               <Box 
                 sx={{ 
-                  width: 32, 
-                  height: 32, 
+                  width: { xs: 28, sm: 32 }, 
+                  height: { xs: 28, sm: 32 }, 
                   borderRadius: '50%', 
                   bgcolor: 'primary.main', 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
-                  mt: 0.5
+                  mt: 0.5,
+                  flexShrink: 0,
                 }}
               >
-                <SmartToyIcon sx={{ color: 'white', fontSize: 20 }} />
+                <SmartToyIcon sx={{ color: 'white', fontSize: { xs: 18, sm: 20 } }} />
               </Box>
             )}
             
             <Paper
               elevation={1}
               sx={{
-                p: 3,
-                maxWidth: '65%',
+                p: { xs: 1.5, sm: 2, md: 3 },
+                maxWidth: { xs: '85%', sm: '75%', md: '65%' },
                 borderRadius: 2,
                 bgcolor: msg.role === 'user' ? 'primary.main' : 'background.paper',
                 color: msg.role === 'user' ? 'white' : 'text.primary',
                 borderTopRightRadius: msg.role === 'user' ? 0 : 2,
                 borderTopLeftRadius: msg.role === 'assistant' ? 0 : 2,
-                fontSize: '1.1rem', // Larger text
-                lineHeight: 1.7,
+                fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
+                lineHeight: { xs: 1.5, sm: 1.6, md: 1.7 },
               }}
             >
               {msg.role === 'assistant' ? (
@@ -138,17 +162,18 @@ export default function ChatInterface() {
             {msg.role === 'user' && (
               <Box 
                 sx={{ 
-                  width: 32, 
-                  height: 32, 
+                  width: { xs: 28, sm: 32 }, 
+                  height: { xs: 28, sm: 32 }, 
                   borderRadius: '50%', 
                   bgcolor: 'secondary.main', 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
-                  mt: 0.5
+                  mt: 0.5,
+                  flexShrink: 0,
                 }}
               >
-                <PersonIcon sx={{ color: 'white', fontSize: 20 }} />
+                <PersonIcon sx={{ color: 'white', fontSize: { xs: 18, sm: 20 } }} />
               </Box>
             )}
           </Box>
@@ -161,7 +186,14 @@ export default function ChatInterface() {
         <div ref={messagesEndRef} />
       </Paper>
 
-      <Box sx={{ display: 'flex', gap: 1 }}>
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          gap: { xs: 0.5, sm: 1 }, 
+          alignItems: 'flex-end',
+          flexShrink: 0, // Don't shrink the input area
+        }}
+      >
         <TextField
           fullWidth
           multiline
@@ -172,6 +204,11 @@ export default function ChatInterface() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyPress}
           disabled={isStreaming}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+            },
+          }}
         />
         <IconButton 
           color="primary" 
@@ -180,17 +217,18 @@ export default function ChatInterface() {
           sx={{ 
             bgcolor: 'primary.main', 
             color: 'white',
-            width: 56,
-            height: 56,
+            width: { xs: 48, sm: 56 },
+            height: { xs: 48, sm: 56 },
             borderRadius: '50%', // Makes it circular
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            flexShrink: 0,
             '&:hover': { 
               bgcolor: 'primary.dark',
               boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
             },
           }}
         >
-          <SendIcon />
+          <SendIcon sx={{ fontSize: { xs: 20, sm: 24 } }} />
         </IconButton>
       </Box>
     </Container>
