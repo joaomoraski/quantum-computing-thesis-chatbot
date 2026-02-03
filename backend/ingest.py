@@ -48,7 +48,7 @@ def load_pdfs(directory: str) -> List[Document]:
     return documents
 
 def ingest_documents():
-    pdf_dir = "../data/pdfs"
+    pdf_dir = "data/pdfs"
     if not os.path.exists(pdf_dir):
         print(f"Directory {pdf_dir} does not exist.")
         return
