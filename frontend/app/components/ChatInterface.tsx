@@ -66,7 +66,7 @@ export default function ChatInterface() {
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ maxWidth: '1000px', mx: 'auto' }}>
           This chatbot uses Retrieval-Augmented Generation (RAG) to answer questions based on 
-          43 research papers and thesis documents. It can discuss quantum computing concepts, 
+          research papers and thesis documents. It can discuss quantum computing concepts, 
           algorithms, and research findings from the ingested literature.
         </Typography>
       </Box>
