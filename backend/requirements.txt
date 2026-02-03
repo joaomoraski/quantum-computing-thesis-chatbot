@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+langchain>=0.1.0
+langchain-core
+langchain-community
+langchain-postgres
+langchain-google-genai
+pypdf
+python-dotenv
+pydantic-settings
+psycopg2-binary
+psycopg
+pgvector
