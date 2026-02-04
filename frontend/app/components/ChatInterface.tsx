@@ -1,11 +1,11 @@
 "use client";
 
-import { Box, TextField, IconButton, Paper, Container, Typography } from '@mui/material';
+import { Box, TextField, IconButton, Paper, Container, Typography, useTheme, alpha } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
-import PersonIcon from '@mui/icons-material/Person';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'; // Better than SmartToy
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import { useChat } from '../hooks/useChat';
 import { ThinkingIndicator } from './ThinkingIndicator';
 import { MarkdownRenderer } from './MarkdownRenderer';
@@ -15,11 +15,11 @@ import { useEffect, useRef } from 'react';
 export default function ChatInterface() {
   const { messages, input, setInput, isLoading, isStreaming, sendMessage } = useChat();
   const { mode, toggleColorMode } = useColorMode();
+  const theme = useTheme();
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToBottom = () => {
-    // Use scrollTop instead of scrollIntoView to avoid affecting page scroll
     if (messagesContainerRef.current) {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
@@ -40,120 +40,175 @@ export default function ChatInterface() {
     <Container 
       maxWidth={false} 
       sx={{ 
-        minHeight: { xs: '100dvh', sm: '100vh' }, // Use minHeight on mobile to allow natural scroll
-        height: { xs: 'auto', sm: '100vh' }, // Auto height on mobile, fixed on desktop
-        maxHeight: { xs: 'none', sm: '100vh' },
+        height: { xs: '100dvh', sm: '100vh' },
+        maxHeight: { xs: '100dvh', sm: '100vh' },
         display: 'flex', 
         flexDirection: 'column', 
         py: { xs: 1, sm: 2 }, 
-        px: { xs: 1, sm: 2, md: 4 },
-        maxWidth: { xs: '100%', sm: '95%', md: '90%' },
-        overflow: { xs: 'visible', sm: 'hidden' }, // Allow scroll on mobile
+        px: { xs: 1, sm: 3, md: 6 },
+        maxWidth: { xs: '100%', md: '1200px', lg: '1400px' }, // Wider on large screens
+        overflow: { xs: 'visible', sm: 'hidden' },
         position: 'relative',
+        mx: 'auto',
       }}
     >
-      <Box sx={{ mb: { xs: 1, sm: 2 }, textAlign: 'center', position: 'relative' }}>
+      {/* Header */}
+      <Box sx={{ 
+        mb: { xs: 1, sm: 2 }, 
+        textAlign: 'center', 
+        position: 'relative',
+        py: 1,
+      }}>
         <IconButton
           onClick={toggleColorMode}
-          sx={{ position: 'absolute', right: 0, top: 0 }}
-          color="inherit"
+          sx={{ 
+            position: 'absolute', 
+            right: 0, 
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: 'text.secondary',
+            backdropFilter: 'blur(10px)',
+            bgcolor: alpha(theme.palette.background.paper, 0.5),
+            border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+            '&:hover': { bgcolor: alpha(theme.palette.background.paper, 0.8) }
+          }}
           size="small"
         >
-          {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+          {mode === 'dark' ? <LightModeOutlinedIcon fontSize="small" /> : <DarkModeOutlinedIcon fontSize="small" />}
         </IconButton>
-        <Typography 
-          variant="h4" 
-          component="h1" 
-          gutterBottom 
-          fontWeight="bold"
-          sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' } }}
-        >
-          Quantum Computing Thesis Assistant
-        </Typography>
-        <Typography 
-          variant="subtitle1" 
-          color="text.secondary" 
-          sx={{ mb: 1, fontSize: { xs: '0.875rem', sm: '1rem' }, display: { xs: 'none', sm: 'block' } }}
-        >
-          AI-powered assistant for exploring quantum computing research and thesis documents
-        </Typography>
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5, mb: 0.5 }}>
+          <AutoAwesomeIcon sx={{ 
+            color: 'primary.main', 
+            fontSize: { xs: 24, sm: 32 },
+            filter: mode === 'dark' ? 'drop-shadow(0 0 8px rgba(101, 31, 255, 0.5))' : 'none'
+          }} />
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            fontWeight="800"
+            sx={{ 
+              fontSize: { xs: '1.25rem', sm: '1.75rem' },
+              background: mode === 'dark' 
+                ? 'linear-gradient(to right, #fff, #b388ff)' 
+                : 'linear-gradient(to right, #1a1a1a, #651fff)',
+              backgroundClip: 'text',
+              textFillColor: 'transparent',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            Quantum Thesis
+          </Typography>
+        </Box>
+        
         <Typography 
           variant="body2" 
           color="text.secondary" 
           sx={{ 
-            maxWidth: '1000px', 
+            maxWidth: '600px', 
             mx: 'auto',
             fontSize: { xs: '0.75rem', sm: '0.875rem' },
-            display: { xs: 'none', md: 'block' }
+            opacity: 0.8,
+            display: { xs: 'none', sm: 'block' }
           }}
         >
-          This chatbot uses Retrieval-Augmented Generation (RAG) to answer questions based on 
-          research papers and thesis documents. It can discuss quantum computing concepts, 
-          algorithms, and research findings from the ingested literature.
+          RAG-powered assistant for quantum computing research analysis
         </Typography>
       </Box>
 
+      {/* Chat Area */}
       <Paper 
         ref={(el) => { messagesContainerRef.current = el as HTMLDivElement | null; }}
-        elevation={3} 
+        elevation={0} 
         sx={{ 
-          flex: { xs: '0 1 auto', sm: 1 }, // Don't grow on mobile
+          flex: { xs: '0 1 auto', sm: 1 },
           mb: { xs: 1, sm: 2 }, 
-          p: { xs: 1.5, sm: 2, md: 3 }, 
-          overflowY: { xs: 'visible', sm: 'auto' }, // Visible on mobile, auto scroll on desktop
+          p: { xs: 2, md: 4 }, 
+          overflowY: { xs: 'visible', sm: 'auto' },
           overflowX: 'hidden',
-          borderRadius: 2,
-          minHeight: { xs: '300px', sm: '400px', md: '500px' }, // Minimum height for empty chat
-          maxHeight: { xs: 'none', sm: '100%' }, // No max height on mobile
-          WebkitOverflowScrolling: 'touch', // Smooth scrolling on iOS
+          borderRadius: { xs: 2, sm: 4 },
+          minHeight: { xs: '300px', sm: '400px', md: '500px' },
+          maxHeight: { xs: 'none', sm: '100%' },
+          WebkitOverflowScrolling: 'touch',
+          bgcolor: alpha(theme.palette.background.paper, mode === 'dark' ? 0.4 : 0.6),
+          backdropFilter: 'blur(20px)',
+          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          boxShadow: mode === 'dark' 
+            ? '0 4px 30px rgba(0, 0, 0, 0.3)' 
+            : '0 4px 30px rgba(0, 0, 0, 0.05)',
         }}
       >
+        {messages.length === 0 && (
+          <Box sx={{ 
+            height: '100%', 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            opacity: 0.5,
+            gap: 2
+          }}>
+            <AutoAwesomeIcon sx={{ fontSize: 48, color: 'text.secondary' }} />
+            <Typography variant="body1" color="text.secondary">
+              Start by asking a question about the thesis
+            </Typography>
+          </Box>
+        )}
+
         {messages.map((msg, index) => (
           <Box
             key={index}
+            className="message-enter"
             sx={{
               display: 'flex',
               justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-              mb: { xs: 1.5, sm: 2 },
-              gap: { xs: 0.5, sm: 1 }
+              mb: { xs: 2, sm: 3 },
+              gap: { xs: 1, sm: 2 },
+              animationDelay: `${index * 0.05}s` // Staggered animation
             }}
           >
             {msg.role === 'assistant' && (
               <Box 
                 sx={{ 
-                  width: { xs: 28, sm: 32 }, 
-                  height: { xs: 28, sm: 32 }, 
-                  borderRadius: '50%', 
-                  bgcolor: 'primary.main', 
+                  width: { xs: 32, sm: 36 }, 
+                  height: { xs: 32, sm: 36 }, 
+                  borderRadius: '12px', 
+                  background: 'linear-gradient(135deg, #651fff 0%, #00e5ff 100%)',
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
                   mt: 0.5,
                   flexShrink: 0,
+                  boxShadow: '0 2px 10px rgba(101, 31, 255, 0.3)',
                 }}
               >
-                <SmartToyIcon sx={{ color: 'white', fontSize: { xs: 18, sm: 20 } }} />
+                <AutoAwesomeIcon sx={{ color: 'white', fontSize: { xs: 18, sm: 20 } }} />
               </Box>
             )}
             
             <Paper
-              elevation={1}
+              elevation={0}
               sx={{
-                p: { xs: 1.5, sm: 2, md: 3 },
-                maxWidth: { xs: '85%', sm: '75%', md: '65%' },
-                borderRadius: 2,
-                bgcolor: msg.role === 'user' ? 'primary.main' : 'background.paper',
+                p: { xs: 2, md: 2.5 },
+                maxWidth: { xs: '85%', sm: '75%', md: '70%' },
+                borderRadius: msg.role === 'user' ? '20px 4px 20px 20px' : '4px 20px 20px 20px',
+                bgcolor: msg.role === 'user' 
+                  ? alpha(theme.palette.primary.main, mode === 'dark' ? 0.9 : 1)
+                  : alpha(theme.palette.background.paper, mode === 'dark' ? 0.6 : 0.8),
                 color: msg.role === 'user' ? 'white' : 'text.primary',
-                borderTopRightRadius: msg.role === 'user' ? 0 : 2,
-                borderTopLeftRadius: msg.role === 'assistant' ? 0 : 2,
-                fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-                lineHeight: { xs: 1.5, sm: 1.6, md: 1.7 },
+                border: msg.role === 'assistant' ? `1px solid ${alpha(theme.palette.divider, 0.1)}` : 'none',
+                boxShadow: msg.role === 'user'
+                  ? `0 4px 15px ${alpha(theme.palette.primary.main, 0.3)}`
+                  : 'none',
+                fontSize: { xs: '0.95rem', sm: '1rem' },
+                lineHeight: 1.6,
               }}
             >
               {msg.role === 'assistant' ? (
                 <MarkdownRenderer content={msg.content} />
               ) : (
-                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
                   {msg.content}
                 </Typography>
               )}
@@ -162,10 +217,10 @@ export default function ChatInterface() {
             {msg.role === 'user' && (
               <Box 
                 sx={{ 
-                  width: { xs: 28, sm: 32 }, 
-                  height: { xs: 28, sm: 32 }, 
-                  borderRadius: '50%', 
-                  bgcolor: 'secondary.main', 
+                  width: { xs: 32, sm: 36 }, 
+                  height: { xs: 32, sm: 36 }, 
+                  borderRadius: '12px', 
+                  bgcolor: alpha(theme.palette.text.primary, 0.1),
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center',
@@ -173,59 +228,76 @@ export default function ChatInterface() {
                   flexShrink: 0,
                 }}
               >
-                <PersonIcon sx={{ color: 'white', fontSize: { xs: 18, sm: 20 } }} />
+                <PersonOutlineIcon sx={{ color: 'text.secondary', fontSize: { xs: 20, sm: 22 } }} />
               </Box>
             )}
           </Box>
         ))}
         
         {(isLoading || isStreaming) && messages[messages.length - 1]?.role === 'user' && (
-           <ThinkingIndicator />
+           <Box sx={{ display: 'flex', gap: 2, ml: 1 }}>
+             <Box sx={{ width: 36 }} /> {/* Spacer for alignment */}
+             <ThinkingIndicator />
+           </Box>
         )}
         
         <div ref={messagesEndRef} />
       </Paper>
 
+      {/* Input Area */}
       <Box 
         sx={{ 
           display: 'flex', 
-          gap: { xs: 0.5, sm: 1 }, 
+          gap: { xs: 1, sm: 2 }, 
           alignItems: 'flex-end',
-          flexShrink: 0, // Don't shrink the input area
+          flexShrink: 0,
+          p: { xs: 1.5, sm: 2 },
+          borderRadius: { xs: 3, sm: 4 },
+          bgcolor: alpha(theme.palette.background.paper, mode === 'dark' ? 0.6 : 0.8),
+          backdropFilter: 'blur(20px)',
+          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
         }}
       >
         <TextField
           fullWidth
           multiline
           maxRows={4}
-          variant="outlined"
-          placeholder="Type your question..."
+          variant="standard"
+          placeholder="Ask something..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyPress}
           disabled={isStreaming}
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              fontSize: { xs: '0.875rem', sm: '1rem' },
-            },
+          InputProps={{
+            disableUnderline: true,
+            sx: { 
+              fontSize: { xs: '0.95rem', sm: '1.05rem' },
+              px: 1,
+            }
           }}
+          sx={{ py: 1 }}
         />
         <IconButton 
-          color="primary" 
           onClick={sendMessage}
           disabled={!input.trim() || isStreaming}
           sx={{ 
-            bgcolor: 'primary.main', 
-            color: 'white',
-            width: { xs: 48, sm: 56 },
-            height: { xs: 48, sm: 56 },
-            borderRadius: '50%', // Makes it circular
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            bgcolor: input.trim() ? 'primary.main' : alpha(theme.palette.text.secondary, 0.1),
+            color: input.trim() ? 'white' : 'text.disabled',
+            width: { xs: 44, sm: 50 },
+            height: { xs: 44, sm: 50 },
+            borderRadius: '16px',
+            boxShadow: input.trim() ? `0 4px 15px ${alpha(theme.palette.primary.main, 0.4)}` : 'none',
             flexShrink: 0,
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
             '&:hover': { 
-              bgcolor: 'primary.dark',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+              bgcolor: input.trim() ? 'primary.dark' : alpha(theme.palette.text.secondary, 0.1),
+              transform: input.trim() ? 'scale(1.05)' : 'none',
             },
+            '&.Mui-disabled': {
+              bgcolor: alpha(theme.palette.text.secondary, 0.1),
+              color: alpha(theme.palette.text.disabled, 0.5),
+            }
           }}
         >
           <SendIcon sx={{ fontSize: { xs: 20, sm: 24 } }} />

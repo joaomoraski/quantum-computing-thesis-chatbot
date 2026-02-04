@@ -1,4 +1,4 @@
-.PHONY: help install-backend install-frontend run-backend run-frontend dev setup clean
+.PHONY: help install-backend install-frontend run-backend run-frontend dev setup clean test-backend health-check
 
 help:
 	@echo "Available commands:"
@@ -9,6 +9,8 @@ help:
 	@echo "  make run-frontend       - Run Next.js frontend server"
 	@echo "  make dev                - Run both backend and frontend"
 	@echo "  make ingest             - Ingest PDF documents into vector store"
+	@echo "  make test-backend       - Test backend health and performance"
+	@echo "  make health-check       - Quick health check of backend API"
 	@echo "  make clean              - Clean Python cache files"
 
 install-backend:
@@ -33,6 +35,18 @@ run-frontend:
 ingest:
 	@echo "Ingesting documents..."
 	cd backend && python ingest.py
+
+test-backend:
+	@echo "Testing backend performance..."
+	@echo "\n📊 Health Check:"
+	@curl -s http://localhost:8000/health | python3 -m json.tool || echo "❌ Backend not running"
+	@echo "\n📄 Document Check:"
+	@curl -s http://localhost:8000/debug/check-docs | python3 -m json.tool || echo "❌ Vector store not accessible"
+	@echo "\n✅ Tests complete!"
+
+health-check:
+	@echo "🔍 Checking backend health..."
+	@curl -s http://localhost:8000/health | python3 -m json.tool && echo "✅ Backend is healthy" || echo "❌ Backend is down"
 
 clean:
 	@echo "Cleaning Python cache files..."
