@@ -8,6 +8,7 @@ import asyncio
 import time
 import statistics
 import httpx
+import uuid
 from typing import List, Tuple
 
 API_URL = "http://localhost:8000"
@@ -81,8 +82,10 @@ async def run_benchmark():
         for i, question in enumerate(TEST_QUESTIONS, 1):
             print(f"\n  Request {i}/{len(TEST_QUESTIONS)}: {question[:40]}...")
             
+            # Generate valid UUID for session_id
+            session_id = str(uuid.uuid4())
             first_byte, total, chunks, success = await test_single_request(
-                client, question, f"benchmark-sequential-{i}"
+                client, question, session_id
             )
             
             if success:
@@ -97,8 +100,9 @@ async def run_benchmark():
     concurrent_times = []
     
     async with httpx.AsyncClient() as client:
+        # Generate unique UUIDs for each concurrent request
         tasks = [
-            test_single_request(client, TEST_QUESTIONS[i % len(TEST_QUESTIONS)], f"benchmark-concurrent-{i}")
+            test_single_request(client, TEST_QUESTIONS[i % len(TEST_QUESTIONS)], str(uuid.uuid4()))
             for i in range(5)
         ]
         
