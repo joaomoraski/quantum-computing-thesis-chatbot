@@ -10,9 +10,19 @@ class Settings(BaseSettings):
     GOOGLE_API_KEY: str | None = None
     CORS_ORIGINS: str = "*"  # Comma-separated list of origins, or "*" for all
     
+    # Performance settings
+    DB_POOL_SIZE: int = 10
+    DB_MAX_OVERFLOW: int = 20
+    VECTOR_SEARCH_K: int = 20  # Total documents to retrieve from vector store
+    RETRIEVAL_TOP_K: int = 10  # Final number of docs to use (thesis prioritized)
+    
     @property
     def DATABASE_URL(self) -> str:
         return f"postgresql+psycopg2://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+    
+    @property
+    def ASYNC_DATABASE_URL(self) -> str:
+        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
     
     @property
     def cors_origins_list(self) -> list[str]:

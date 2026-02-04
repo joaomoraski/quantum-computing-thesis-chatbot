@@ -31,6 +31,7 @@ venv/
 ENV/
 env/
 .venv
+backend/data/pdfs/
 
 # FastAPI / Backend
 *.db

@@ -10,4 +10,5 @@ python-dotenv
 pydantic-settings
 psycopg2-binary
 psycopg
+psycopg-pool
 pgvector

@@ -16,29 +16,41 @@ app = FastAPI(title="Thesis Chatbot API")
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize database tables on startup"""
+    """Initialize database and connection pool on startup"""
     try:
-        # Convert SQLAlchemy-style URL to psycopg connection string
-        db_url = settings.DATABASE_URL.replace("postgresql+psycopg2://", "postgresql://")
-        async_connection = await psycopg.AsyncConnection.connect(db_url)
+        from rag_chain import get_connection_pool
         
-        # Create the chat_history table if it doesn't exist
-        # Schema matches PostgresChatMessageHistory expectations
-        async with async_connection.cursor() as cursor:
-            await cursor.execute("""
-                CREATE TABLE IF NOT EXISTS chat_history (
-                    id SERIAL PRIMARY KEY,
-                    session_id TEXT NOT NULL,
-                    message JSONB NOT NULL
-                );
-                CREATE INDEX IF NOT EXISTS idx_chat_history_session_id ON chat_history(session_id);
-            """)
-            await async_connection.commit()
+        # Initialize connection pool
+        pool = await get_connection_pool()
         
-        await async_connection.close()
-        print("Database tables initialized successfully")
+        # Create tables using pooled connection
+        async with pool.connection() as conn:
+            async with conn.cursor() as cursor:
+                await cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS chat_history (
+                        id SERIAL PRIMARY KEY,
+                        session_id TEXT NOT NULL,
+                        message JSONB NOT NULL
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_chat_history_session_id ON chat_history(session_id);
+                """)
+                await conn.commit()
+        
+        print("✓ Database initialized with connection pool")
+        print(f"✓ Pool size: {settings.DB_POOL_SIZE}, Max overflow: {settings.DB_MAX_OVERFLOW}")
     except Exception as e:
-        print(f"Warning: Could not initialize database tables: {e}")
+        print(f"Warning: Could not initialize database: {e}")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Close connection pool on shutdown"""
+    try:
+        from rag_chain import _connection_pool
+        if _connection_pool:
+            await _connection_pool.close()
+            print("✓ Connection pool closed")
+    except Exception as e:
+        print(f"Warning: Error closing connection pool: {e}")
 
 app.add_middleware(
     CORSMiddleware,
@@ -54,12 +66,13 @@ class ChatRequest(BaseModel):
     session_id: str
 
 async def generate_chat_response(message: str, session_id: str) -> AsyncIterable[str]:
+    """Optimized streaming response generator"""
     from langchain_core.messages import HumanMessage
     from langchain_core.runnables.history import RunnableWithMessageHistory
     
     rag_chain = get_rag_chain(session_id)
     
-    # Get the history object synchronously (await it first)
+    # Get the history object (cached connection pool)
     history = await get_session_history(session_id)
     
     # Factory function that returns the history object
@@ -73,32 +86,21 @@ async def generate_chat_response(message: str, session_id: str) -> AsyncIterable
         history_messages_key="chat_history",
     )
     
+    # Stream with optimized chunk extraction
     async for chunk in chain_with_history.astream(
         {"input": HumanMessage(content=message)},
         config={"configurable": {"session_id": session_id}}
     ):
-        # Extract content from message chunks
-        content = None
-        
-        if hasattr(chunk, 'content'):
+        # Simplified content extraction for faster processing
+        if hasattr(chunk, 'content') and chunk.content:
             content = chunk.content
-        elif isinstance(chunk, dict):
-            # Handle different dict structures
-            if 'content' in chunk:
-                content = chunk['content']
-            elif 'output' in chunk:
-                content = chunk['output']
-        elif isinstance(chunk, str):
-            content = chunk
-        
-        # Convert content to string if needed
-        if content is not None:
+            # Handle list content
             if isinstance(content, list):
-                # Join list items (e.g., for multi-part content)
                 content = "".join(str(item) for item in content)
             elif not isinstance(content, str):
                 content = str(content)
             
+            # Yield immediately for lower latency
             if content:
                 yield content
 

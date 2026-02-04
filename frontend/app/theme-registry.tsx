@@ -3,19 +3,65 @@
 import * as React from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { createTheme } from '@mui/material/styles';
+import { createTheme, alpha } from '@mui/material/styles';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
 import { useServerInsertedHTML } from 'next/navigation';
 
+// Quantum Theming
 const getTheme = (mode: 'light' | 'dark') => createTheme({
   palette: {
     mode,
     primary: {
-      main: '#1976d2',
+      main: '#651fff', // Deep Purple A200
+      light: '#b388ff',
+      dark: '#0100ca',
     },
     secondary: {
-      main: '#9c27b0',
+      main: '#00e5ff', // Light Blue A400
+      light: '#6effff',
+      dark: '#00b2cc',
+    },
+    background: {
+      default: mode === 'dark' ? '#050508' : '#f8f9fa',
+      paper: mode === 'dark' ? '#0f111a' : '#ffffff',
+    },
+    text: {
+      primary: mode === 'dark' ? '#e2e2e2' : '#1a1a1a',
+      secondary: mode === 'dark' ? '#a0a0a0' : '#666666',
+    }
+  },
+  typography: {
+    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    h4: {
+      fontWeight: 700,
+      letterSpacing: '-0.02em',
+    },
+    subtitle1: {
+      letterSpacing: '-0.01em',
+    },
+    body1: {
+      lineHeight: 1.7,
+    },
+  },
+  shape: {
+    borderRadius: 16,
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          fontWeight: 600,
+        },
+      },
     },
   },
 });
@@ -26,18 +72,15 @@ const ColorModeContext = React.createContext<{
   mode: 'light' | 'dark';
 }>({
   toggleColorMode: () => {},
-  mode: 'light',
+  mode: 'dark',
 });
 
 export const useColorMode = () => React.useContext(ColorModeContext);
 
-// This implementation is taken from https://github.com/mui/material-ui/blob/master/examples/material-ui-nextjs-ts/src/components/ThemeRegistry/ThemeRegistry.tsx
 export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
-  // Load theme from localStorage or default to 'dark'
   const [mode, setMode] = React.useState<'light' | 'dark'>('dark');
   const [mounted, setMounted] = React.useState(false);
   
-  // Load theme from localStorage on mount
   React.useEffect(() => {
     setMounted(true);
     const saved = localStorage.getItem('theme-mode');
@@ -46,18 +89,13 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
     }
   }, []);
   
-  // Apply theme to body/html
   React.useEffect(() => {
     if (mounted && typeof window !== 'undefined') {
       document.documentElement.setAttribute('data-theme', mode);
-      // Apply background and text colors based on theme
-      if (mode === 'dark') {
-        document.body.style.backgroundColor = '#121212';
-        document.body.style.color = '#ffffff';
-      } else {
-        document.body.style.backgroundColor = '#ffffff';
-        document.body.style.color = '#000000';
-      }
+      // Colors are now handled by CSS variables in globals.css using the data-theme attribute
+      // But we keep this for legacy inline style support if needed
+      const theme = getTheme(mode);
+      document.body.style.backgroundColor = theme.palette.background.default;
     }
   }, [mode, mounted]);
   
