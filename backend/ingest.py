@@ -10,6 +10,15 @@ from config import get_settings
 
 settings = get_settings()
 
+
+def get_embeddings() -> GoogleGenerativeAIEmbeddings:
+    """Get Gemini embeddings model. Uses gemini-embedding-001 (models/embedding-001 is deprecated)."""
+    return GoogleGenerativeAIEmbeddings(
+        model="gemini-embedding-001",
+        google_api_key=settings.GOOGLE_API_KEY,
+    )
+
+
 def load_pdfs(directory: str) -> List[Document]:
     documents = []
     pdf_files = glob.glob(os.path.join(directory, "*.pdf"))
@@ -69,11 +78,8 @@ def ingest_documents():
     splits = text_splitter.split_documents(docs)
     print(f"Split into {len(splits)} chunks.")
 
-    embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/embedding-001",
-        google_api_key=settings.GOOGLE_API_KEY
-    )
-    
+    embeddings = get_embeddings()
+
     # Connection string
     connection = settings.DATABASE_URL
     
