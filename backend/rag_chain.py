@@ -18,11 +18,11 @@ _vector_store = None
 _embeddings = None
 
 @lru_cache(maxsize=1)
-def get_embeddings():
-    """Cached embeddings model"""
+def get_embeddings() -> GoogleGenerativeAIEmbeddings:
+    """Get Gemini embeddings model. Uses gemini-embedding-001 (models/embedding-001 is deprecated)."""
     return GoogleGenerativeAIEmbeddings(
-        model="models/embedding-001",
-        google_api_key=settings.GOOGLE_API_KEY
+        model="gemini-embedding-001",
+        google_api_key=settings.GOOGLE_API_KEY,
     )
 
 def get_vector_store():
@@ -47,9 +47,9 @@ def format_docs_with_sources(docs: List[Document]) -> str:
         
         # Mark thesis documents clearly
         if is_thesis or source == "thesis":
-            source_label = "📘 [THESIS] thesis.pdf"
+            source_label = "[Source: THESIS]"
         else:
-            source_label = f"📄 [{source}]"
+            source_label = f"[Source: {source}]"
         
         formatted_parts.append(f"{source_label}\n{doc.page_content}")
     
@@ -146,18 +146,29 @@ def get_rag_chain(session_id: str):
     # Simplified and clearer system prompt
     system_prompt = (
         "You are an assistant specialized in a computer science thesis about quantum computing.\n\n"
-        "**PRIMARY SOURCE**: thesis.pdf (marked as 📘 [THESIS]) - always prioritize this document.\n"
-        "**SECONDARY SOURCES**: Other PDFs provide additional context.\n\n"
-        "**How to respond:**\n"
-        "1. **With THESIS context**: Use it as primary source and cite clearly\n"
-        "2. **With other PDFs context**: Complement the answer and mention the source\n"
-        "3. **Without relevant context**: Use general knowledge, but make it clear it's not from the thesis\n\n"
-        "**Formatting:**\n"
-        "- Markdown for structure (lists, bold, italic)\n"
-        "- LaTeX for equations: inline `$...$` or block `$$...$$`\n"
-        "- Markdown tables\n"
-        "- Cite equation numbers from the thesis\n\n"
-        "Answer in the same language as the question. Be detailed when necessary."
+        "**CONTEXT SOURCES:**\n"
+        "- [Source: THESIS] = The main thesis document (HIGHEST PRIORITY)\n"
+        "- [Source: filename.pdf] = Supporting research papers\n\n"
+        "**IMPORTANT FORMATTING RULES:**\n"
+        "1. When writing LaTeX equations (both inline $...$ and block $$...$$), NEVER include source citations or any text inside the math delimiters\n"
+        "2. Write the complete equation first, then cite the source AFTER the equation closes\n"
+        "3. Source citations should be on separate lines or at the end of paragraphs, NEVER inside formulas\n\n"
+        "**Example of CORRECT formatting:**\n"
+        "The cost function is:\n\n"
+        "$$C(x) = -\\sum_{{i}} \\left( \\alpha DY'_{{i}} + \\beta \\frac{{1}}{{PVP'_{{i}}}} \\right) x_i$$\n\n"
+        "This equation is from the thesis (Equation 13).\n\n"
+        "**Example of WRONG formatting (DO NOT DO THIS):**\n"
+        "$$C(x) = [THESIS] -\\sum_{{i}}...$$ ← NEVER put source tags inside equations!\n\n"
+        "**How to cite sources:**\n"
+        "- After presenting information from THESIS, you can mention it's from the thesis\n"
+        "- After presenting information from other PDFs, mention the source file\n"
+        "- Use clean, natural language for citations\n\n"
+        "**Other formatting:**\n"
+        "- Use Markdown for structure (lists, bold, italic)\n"
+        "- Use LaTeX for equations: inline `$...$` or block `$$...$$`\n"
+        "- Use Markdown tables when appropriate\n"
+        "- Cite equation numbers from the thesis when relevant\n\n"
+        "Answer in the same language as the question. Be detailed and accurate."
     )
     
     qa_prompt = ChatPromptTemplate.from_messages(
