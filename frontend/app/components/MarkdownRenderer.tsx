@@ -12,6 +12,25 @@ interface MarkdownRendererProps {
 }
 
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
+  // Clean up any source tags that might appear inside LaTeX equations
+  const cleanContent = content
+    // Remove source tags from inside display math ($$...$$)
+    .replace(/\$\$([\s\S]*?)\$\$/g, (match, equation) => {
+      const cleaned = equation
+        .replace(/📘\s*\[THESIS\]\s*/g, '')
+        .replace(/📄\s*\[[^\]]+\]\s*/g, '')
+        .replace(/\[Source:\s*[^\]]+\]\s*/g, '');
+      return `$$${cleaned}$$`;
+    })
+    // Remove source tags from inside inline math ($...$)
+    .replace(/\$([^\$]+)\$/g, (match, equation) => {
+      const cleaned = equation
+        .replace(/📘\s*\[THESIS\]\s*/g, '')
+        .replace(/📄\s*\[[^\]]+\]\s*/g, '')
+        .replace(/\[Source:\s*[^\]]+\]\s*/g, '');
+      return `$${cleaned}$`;
+    });
+
   return (
     <Box
       sx={{
@@ -115,9 +134,15 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
     >
       <ReactMarkdown
         remarkPlugins={[remarkMath, remarkGfm]}
-        rehypePlugins={[rehypeKatex]}
+        rehypePlugins={[
+          [rehypeKatex, {
+            strict: false,
+            throwOnError: false,
+            errorColor: 'transparent',
+          }]
+        ]}
       >
-        {content}
+        {cleanContent}
       </ReactMarkdown>
     </Box>
   );
